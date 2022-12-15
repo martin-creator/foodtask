@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 
 
 # from coreapp.forms import AccountForm, UserForm, RestaurantForm, MealForm
+from coreapp.forms import UserForm, RestaurantForm
 
 # Create your views here.
 def home(request):
@@ -14,9 +15,9 @@ def restaurant_home(request):
 
 
 def restaurant_sign_up(request):
-    return render(request, 'restaurant/sign_up.html', {})
-#   user_form = UserForm()
-#   restaurant_form = RestaurantForm()
+    #return render(request, 'restaurant/sign_up.html', {})
+    user_form = UserForm()
+    restaurant_form = RestaurantForm()
 
 #   if request.method == "POST":
 #     user_form = UserForm(request.POST)
@@ -35,7 +36,7 @@ def restaurant_sign_up(request):
 
 #       return redirect(restaurant_home)
 
-#   return render(request, 'restaurant/sign_up.html', {
-#     "user_form": user_form,
-#     "restaurant_form": restaurant_form
-#   })
+    return render(request, 'restaurant/sign_up.html', {
+        "user_form": user_form,
+        "restaurant_form": restaurant_form
+  })
