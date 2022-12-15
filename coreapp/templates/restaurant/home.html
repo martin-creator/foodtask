@@ -24,7 +24,13 @@
     ></script>
   </head>
   <body>
-    <h1>Hello Foodtask lovers!</h1>
+    <h1>Restaurant Page</h1>
+    <div class="row">
+      <div class="col-md-12 mb-2 text-center">
+        <h4>Welcome, {{ user.username }} </h4>
+        <a href="{% url 'restaurant_sign_out' %}">Logout</a>
+      </div>
+    </div>
     <button class="btn btn-primary">Hello Martin</button>
   </body>
 </html>
