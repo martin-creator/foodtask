@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 
 # from coreapp.forms import AccountForm, UserForm, RestaurantForm, MealForm
-from coreapp.forms import UserForm, RestaurantForm, AccountForm, Mea
+from coreapp.forms import UserForm, RestaurantForm, AccountForm, MealForm
 
 # Create your views here.
 

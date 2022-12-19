@@ -4,7 +4,7 @@ from django import forms
 
 from django.contrib.auth.models import User
 from django.db import models
-from coreapp.models import Restaurant
+from coreapp.models import Restaurant, Meal
 
 
 class UserForm(forms.ModelForm):
@@ -28,3 +28,9 @@ class AccountForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ("first_name", "last_name", "email")
+
+
+class MealForm(forms.ModelForm):
+    class Meta:
+        model = Meal
+        exclude = ("restaurant",)
