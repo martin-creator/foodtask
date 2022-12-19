@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 
 # from coreapp.forms import AccountForm, UserForm, RestaurantForm, MealForm
 from coreapp.forms import UserForm, RestaurantForm, AccountForm, MealForm
+from coreapp.models import Meal
 
 # Create your views here.
 
@@ -68,9 +69,13 @@ def restaurant_account(request):
     })
 
 
-@login_required(login_url="/restaurant/sign_in/")
+@login_required(login_url='/restaurant/sign_in/')
 def restaurant_meal(request):
-    return render(request, 'restaurant/meal.html')
+    meals = Meal.objects.filter(
+        restaurant=request.user.restaurant).order_by("-id")
+    return render(request, 'restaurant/meal.html', {
+        "meals": meals
+    })
 
 
 @login_required(login_url='/restaurant/sign_in/')
@@ -87,6 +92,23 @@ def restaurant_add_meal(request):
 
     meal_form = MealForm()
     return render(request, 'restaurant/add_meal.html', {
+        "meal_form": meal_form
+    })
+
+
+@login_required(login_url='/restaurant/sign_in/')
+def restaurant_edit_meal(request, meal_id):
+
+    if request.method == "POST":
+        meal_form = MealForm(request.POST, request.FILES,
+                             instance=Meal.objects.get(id=meal_id))
+
+        if meal_form.is_valid():
+            meal_form.save()
+            return redirect(restaurant_meal)
+
+    meal_form = MealForm(instance=Meal.objects.get(id=meal_id))
+    return render(request, 'restaurant/edit_meal.html', {
         "meal_form": meal_form
     })
 
