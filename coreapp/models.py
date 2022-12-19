@@ -39,3 +39,15 @@ class Driver(models.Model):
 
     def __str__(self):
         return self.user.get_full_name()
+
+
+class Meal(models.Model):
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=CASCADE, related_name='restaurant')
+    name = models.CharField(max_length=255)
+    short_description = models.TextField(max_length=500)
+    image = CloudinaryField('image')
+    price = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.name
