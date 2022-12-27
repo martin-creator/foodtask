@@ -45,6 +45,7 @@ urlpatterns = [
       # APIs
     #  /convert-token (sign-in/sign-up), /revoke-token (sign-out)
     path('api/social/', include('rest_framework_social_oauth2.urls')),
+    path('api/restaurant/order/notification/<last_request_time>/', apis.restaurant_order_notification),
 
     # APIS for CUSTOMERS
     path('api/customer/restaurants/', apis.customer_get_restaurants),

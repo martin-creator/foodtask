@@ -9,6 +9,18 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken
 from django.views.decorators.csrf import csrf_exempt
 
+# =========
+# RESTAURANT
+# =========
+
+def restaurant_order_notification(request, last_request_time):
+  notification = Order.objects.filter(
+    restaurant = request.user.restaurant, 
+    created_at__gt = last_request_time
+  ).count()
+
+  return JsonResponse({"notification": notification})
+
 
 # =========
 # CUSTOMER
