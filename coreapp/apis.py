@@ -161,6 +161,9 @@ def customer_get_latest_order_status(request):
     })
 
 
+def customer_get_driver_location(request):
+  return JsonResponse({})
+
 # =========
 # DRIVER
 # =========
@@ -307,3 +310,13 @@ def driver_get_revenue(request):
     return JsonResponse({
         "revenue": revenue
     })
+
+
+def driver_update_location(request):
+  return JsonResponse({})
+
+def driver_get_profile(request):
+  return JsonResponse({})
+
+def driver_update_profile(request):
+  return JsonResponse({})
