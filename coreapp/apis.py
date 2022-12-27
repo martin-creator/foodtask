@@ -3,7 +3,7 @@ import json
 
 from django.http import JsonResponse
 from coreapp.models import Order, OrderDetails, Restaurant, Meal
-from coreapp.serializers import RestaurantSerializer, MealSerializer, OrderSerializer
+from coreapp.serializers import RestaurantSerializer, MealSerializer, OrderSerializer, OrderStatusSerializer
 
 from django.utils import timezone
 from oauth2_provider.models import AccessToken
@@ -134,4 +134,28 @@ def customer_get_latest_order(request):
 
   return JsonResponse({
     "last_order": order
+  })
+
+
+
+def customer_get_latest_order_status(request):
+  """
+    params:
+      1. access_token
+    return:
+      {JSON data with all details of an order}
+  """
+
+  access_token = AccessToken.objects.get(
+    token=request.GET.get("access_token"),
+    expires__gt = timezone.now()
+  )
+  customer = access_token.user.customer
+
+  order_status = OrderStatusSerializer(
+    Order.objects.filter(customer=customer).last()
+  ).data
+
+  return JsonResponse({
+    "last_order_status": order_status
   })
