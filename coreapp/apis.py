@@ -354,8 +354,43 @@ def driver_update_location(request):
 
 
 def driver_get_profile(request):
-    return JsonResponse({})
+  access_token = AccessToken.objects.get(
+    token = request.GET["access_token"],
+    expires__gt = timezone.now()
+  )
 
+  driver = OrderDriverSerializer(
+    access_token.user.driver
+  ).data
 
+  return JsonResponse({
+    "driver": driver
+  })
+
+@csrf_exempt
 def driver_update_profile(request):
-    return JsonResponse({})
+  """
+    params:
+      1. access_token
+      2. car_model
+      3. plate_number
+    return:
+      {"status": "success"}
+  """
+
+  if request.method == "POST":
+    access_token = AccessToken.objects.get(
+      token = request.POST["access_token"],
+      expires__gt = timezone.now()
+    )
+
+    driver = access_token.user.driver
+
+    # Update driver's profile
+    driver.car_model = request.POST["car_model"]
+    driver.plate_number = request.POST["plate_number"]
+    driver.save()
+
+  return JsonResponse({
+    "status": "success"
+  })
