@@ -13,13 +13,14 @@ from django.views.decorators.csrf import csrf_exempt
 # RESTAURANT
 # =========
 
-def restaurant_order_notification(request, last_request_time):
-  notification = Order.objects.filter(
-    restaurant = request.user.restaurant, 
-    created_at__gt = last_request_time
-  ).count()
 
-  return JsonResponse({"notification": notification})
+def restaurant_order_notification(request, last_request_time):
+    notification = Order.objects.filter(
+        restaurant=request.user.restaurant,
+        created_at__gt=last_request_time
+    ).count()
+
+    return JsonResponse({"notification": notification})
 
 
 # =========
@@ -115,50 +116,49 @@ def customer_add_order(request):
 
 
 def customer_get_latest_order(request):
-  """
-    params:
-      1. access_token
-    return:
-      {JSON data with all details of an order}
-  """
+    """
+      params:
+        1. access_token
+      return:
+        {JSON data with all details of an order}
+    """
 
-  access_token = AccessToken.objects.get(
-    token=request.GET.get("access_token"),
-    expires__gt = timezone.now()
-  )
-  customer = access_token.user.customer
+    access_token = AccessToken.objects.get(
+        token=request.GET.get("access_token"),
+        expires__gt=timezone.now()
+    )
+    customer = access_token.user.customer
 
-  order = OrderSerializer(
-    Order.objects.filter(customer=customer).last()
-  ).data
+    order = OrderSerializer(
+        Order.objects.filter(customer=customer).last()
+    ).data
 
-  return JsonResponse({
-    "last_order": order
-  })
-
+    return JsonResponse({
+        "last_order": order
+    })
 
 
 def customer_get_latest_order_status(request):
-  """
-    params:
-      1. access_token
-    return:
-      {JSON data with all details of an order}
-  """
+    """
+      params:
+        1. access_token
+      return:
+        {JSON data with all details of an order}
+    """
 
-  access_token = AccessToken.objects.get(
-    token=request.GET.get("access_token"),
-    expires__gt = timezone.now()
-  )
-  customer = access_token.user.customer
+    access_token = AccessToken.objects.get(
+        token=request.GET.get("access_token"),
+        expires__gt=timezone.now()
+    )
+    customer = access_token.user.customer
 
-  order_status = OrderStatusSerializer(
-    Order.objects.filter(customer=customer).last()
-  ).data
+    order_status = OrderStatusSerializer(
+        Order.objects.filter(customer=customer).last()
+    ).data
 
-  return JsonResponse({
-    "last_order_status": order_status
-  })
+    return JsonResponse({
+        "last_order_status": order_status
+    })
 
 
 # =========
@@ -166,23 +166,74 @@ def customer_get_latest_order_status(request):
 # =========
 
 def driver_get_ready_orders(request):
-  orders = OrderSerializer(
-    Order.objects.filter(status = Order.READY, driver = None).order_by("-id"),
-    many = True
-  ).data
+    orders = OrderSerializer(
+        Order.objects.filter(status=Order.READY, driver=None).order_by("-id"),
+        many=True
+    ).data
 
-  return JsonResponse({
-    "orders": orders
-  })
+    return JsonResponse({
+        "orders": orders
+    })
 
+
+@csrf_exempt
 def driver_pick_order(request):
-  return JsonResponse({})
+    """
+      params:
+        1. access_token
+        2. order_id
+      return:
+        {"status": "success"}
+    """
+
+    if request.method == "POST":
+        # Get access token
+        access_token = AccessToken.objects.get(
+            token=request.POST.get("access_token"),
+            expires__gt=timezone.now()
+        )
+
+        # Get driver
+        driver = access_token.user.driver
+
+        # Check if this driver still have an outstanding order
+        if Order.objects.filter(driver=driver, status=Order.ONTHEWAY):
+            return JsonResponse({
+                "status": "failed",
+                "error": "Your outstanding order is not delivered yet."
+            })
+
+        # Process the picking up order
+        try:
+            order = Order.objects.get(
+                id=request.POST["order_id"],
+                driver=None,
+                status=Order.READY
+            )
+
+            order.driver = driver
+            order.status = Order.ONTHEWAY
+            order.picked_at = timezone.now()
+            order.save()
+
+            return JsonResponse({
+                "status": "success"
+            })
+
+        except Order.DoesNotExist:
+            return JsonResponse({
+                "status": "failed",
+                "error": "This order has been picked up by another driver"
+            })
+
 
 def driver_get_latest_order(request):
-  return JsonResponse({})
+    return JsonResponse({})
+
 
 def driver_complete_order(request):
-  return JsonResponse({})
+    return JsonResponse({})
+
 
 def driver_get_revenue(request):
-  return JsonResponse({})
+    return JsonResponse({})
