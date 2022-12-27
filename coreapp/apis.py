@@ -9,6 +9,11 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken
 from django.views.decorators.csrf import csrf_exempt
 
+import stripe
+from foodtasker.settings import STRIPE_API_KEY
+
+stripe.api_key = STRIPE_API_KEY
+
 # =========
 # RESTAURANT
 # =========
@@ -179,6 +184,48 @@ def customer_get_driver_location(request):
     return JsonResponse({
         "location": location
     })
+
+
+@csrf_exempt
+def create_payment_intent(request):
+    """
+      params:
+        1. access_token
+        2. total
+      return:
+        {"client_secret": client_secret}
+    """
+
+    # Get access token
+    access_token = AccessToken.objects.get(
+        token=request.POST["access_token"],
+        expires__gt=timezone.now()
+    )
+
+    # Get the order's total amount
+    total = request.POST["total"]
+
+    if request.method == "POST":
+        if access_token:
+            # Create a Payment Intent: this will create a client secret and return it to Mobile app
+            try:
+                intent = stripe.PaymentIntent.create(
+                    amount=int(total) * 100,  # Amount in cents
+                    currency='aud',
+                    description="FoodTask Order"
+                )
+
+                if intent:
+                    client_secret = intent.client_secret
+                    return JsonResponse({"client_secret": client_secret})
+
+            except stripe.error.StripeError as e:
+                return JsonResponse({"status": "failed", "error": str(e)})
+            except Exception as e:
+                return JsonResponse({"status": "failed", "error": str(e)})
+
+        return JsonResponse({"status": "failed", "error": "Failed to create Payment Intent"})
+
 
 # =========
 # DRIVER
@@ -354,43 +401,44 @@ def driver_update_location(request):
 
 
 def driver_get_profile(request):
-  access_token = AccessToken.objects.get(
-    token = request.GET["access_token"],
-    expires__gt = timezone.now()
-  )
+    access_token = AccessToken.objects.get(
+        token=request.GET["access_token"],
+        expires__gt=timezone.now()
+    )
 
-  driver = OrderDriverSerializer(
-    access_token.user.driver
-  ).data
+    driver = OrderDriverSerializer(
+        access_token.user.driver
+    ).data
 
-  return JsonResponse({
-    "driver": driver
-  })
+    return JsonResponse({
+        "driver": driver
+    })
+
 
 @csrf_exempt
 def driver_update_profile(request):
-  """
-    params:
-      1. access_token
-      2. car_model
-      3. plate_number
-    return:
-      {"status": "success"}
-  """
+    """
+      params:
+        1. access_token
+        2. car_model
+        3. plate_number
+      return:
+        {"status": "success"}
+    """
 
-  if request.method == "POST":
-    access_token = AccessToken.objects.get(
-      token = request.POST["access_token"],
-      expires__gt = timezone.now()
-    )
+    if request.method == "POST":
+        access_token = AccessToken.objects.get(
+            token=request.POST["access_token"],
+            expires__gt=timezone.now()
+        )
 
-    driver = access_token.user.driver
+        driver = access_token.user.driver
 
-    # Update driver's profile
-    driver.car_model = request.POST["car_model"]
-    driver.plate_number = request.POST["plate_number"]
-    driver.save()
+        # Update driver's profile
+        driver.car_model = request.POST["car_model"]
+        driver.plate_number = request.POST["plate_number"]
+        driver.save()
 
-  return JsonResponse({
-    "status": "success"
-  })
+    return JsonResponse({
+        "status": "success"
+    })
